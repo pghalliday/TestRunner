@@ -13,17 +13,17 @@ module.exports = function(grunt) {
       if (Module._cache[key]) {
         delete Module._cache[key];
         if (Module._cache[key]) {
-          console.warn('Mocha grunt task: Could not delete from require cache:\n' + key);
+          grunt.fail.warn('Mocha grunt task: Could not delete from require cache:\n' + key);
         }
       } else {
-        console.warn('Mocha grunt task: Could not find key in require cache:\n' + key);
+        grunt.fail.warn('Mocha grunt task: Could not find key in require cache:\n' + key);
       }
     }
 
     // load the options if they are specified
     var options = grunt.config(['mochaConfig', this.target, 'options']);
     if (typeof options !== 'object') {
-      options = grunt.config('mochaConfig.options');
+      options = grunt.config(['mochaConfig', 'options']);
     }
 
     // create a mocha instance with our options
@@ -40,8 +40,8 @@ module.exports = function(grunt) {
         done(failureCount === 0);
       });
     } catch (e) {
-      console.log('Mocha exploded!');
-      console.log(e.stack);
+      grunt.log.error('Mocha exploded!');
+      grunt.log.error(e.stack);
       done(false);
     }
   });

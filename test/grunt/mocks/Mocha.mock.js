@@ -1,9 +1,9 @@
 module.exports = function(result) {
-	return function(options) {
-		this.options = options;
-		this.files = [];
+	var constructor = function(options) {
+		constructor.options = options;
+		constructor.files = [];
 		this.addFile = function(file) {
-			this.files.push(file);
+			constructor.files.push(file);
 		};
 		this.run = function(callback) {
 			if (result instanceof Error) {
@@ -15,4 +15,5 @@ module.exports = function(result) {
 			}
 		};
 	};
+	return constructor;
 };

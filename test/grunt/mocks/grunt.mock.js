@@ -1,5 +1,9 @@
-module.exports = function() {
+module.exports = function(target, src, filesExpanded, config) {
 	this.multiTask = {
+		target: target,
+		file: {
+			src: src
+		},
 		asynchronous: false,
 		async: function() {
 			this.asynchronous = true;
@@ -21,7 +25,24 @@ module.exports = function() {
 		this.multiTask.description = description;
 		this.multiTask.callback = callback;
 	};
-	this.config = function() {
-		return null;
+	this.config = function(search) {
+		var value = config;
+		search.forEach(function(field) {
+			if (value) {
+				value = value[field];
+			}
+		});
+		return value;
+	};
+	this.file = {
+		expandFiles: function(pattern) {
+			return [pattern].concat(filesExpanded);
+		}
+	};
+	this.log = {
+		errors: [],
+		error: function(msg) {
+			this.errors.push(msg);
+		}
 	};
 };
