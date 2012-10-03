@@ -4,18 +4,25 @@ var events = require('events'),
 	fs = require('fs'),
 	io = require('socket.io');
 
-function Server(port) {
+function Server(port, socketIoLogLevel) {
 	var self = this;
 
 	// create the http server
 	var httpServer = http.createServer(function(request, response) {
 		response.writeHead(200, {'Content-Type': 'text/html'});
-		fs.createReadStream('./src/TestListener.html').pipe(response);
+		fs.createReadStream('./src/Listener.html').pipe(response);
 	});
 
 	// attach the socket io instance to the http server
 	var socket = io.listen(httpServer, {
-		'log level': 0
+		'log level': socketIoLogLevel || 0
+	});
+
+	// accept listeners
+	socket.on('connection', function(socket) {
+		socket.on('register', function() {
+			socket.emit('registered');
+		});
 	});
 
 	this.start = function(callback) {
