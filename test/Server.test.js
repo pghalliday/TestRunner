@@ -54,6 +54,9 @@ describe('Server', function() {
 
 		before(function(done) {
 			server.start(function() {
+				// NB. Cannot use name spaced sockets as they cannot
+				// be disconnected cleanly and will prevent the http
+				// server closing
 				socket = io.connect('http://localhost:' + TEST_PORT);
 				socket.on('connect', function() {
 					done();
@@ -70,7 +73,8 @@ describe('Server', function() {
 
 		after(function(done) {
 			socket.on('disconnect', function() {
-				// workaround for issue in socket.io-client that prevents new sockets being opened
+				// NB. workaround for issue in socket.io-client that
+				// prevents new sockets being opened
 				delete io.sockets['http://localhost:' + TEST_PORT];
 				server.stop(done);
 			});
