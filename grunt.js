@@ -9,9 +9,6 @@ module.exports = function(grunt) {
     lint: {
       files: ['grunt.js', 'src/**/*.js']
     },
-    mochaTest: {
-      files: ['test/**/*.test.js']
-    },
     jshint: {
       options: {
         curly: true,
@@ -27,13 +24,20 @@ module.exports = function(grunt) {
         node: true
       },
       globals: {
-        describe: false,
-        it: false
       }
+    },
+    mochaTest: {
+      files: ['test/**/*.test.js']
     },
     mochaTestConfig: {
       options: {
         reporter: 'nyan'        
+      }
+    },
+    watch: {
+      scripts: {
+        files: ['grunt.js', 'src/**/*.js', 'test/**/*.js'],
+        tasks: 'default'
       }
     }
   });
