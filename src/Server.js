@@ -2,28 +2,33 @@ var events = require('events'),
 	util = require('util'),
 	http = require('http'),
 	fs = require('fs'),
-	io = require('socket.io');
+	sockJS = require('sockjs');
 
 function Server(port, socketIoLogLevel) {
 	var self = this;
 
-	// create the http server
+	// create the HTTP server
 	var httpServer = http.createServer(function(request, response) {
 		response.writeHead(200, {'Content-Type': 'text/html'});
 		fs.createReadStream('./src/Listener.html').pipe(response);
 	});
 
-	// attach the socket io instance to the http server
-	var socket = io.listen(httpServer, {
-		'log level': socketIoLogLevel || 0
-	});
+	// Create a SockJS instance
+	var socket = sockJS.createServer({log: function(severity, message) {
+		// do nothing for now
+	}});
 
 	// accept listeners
-	socket.on('connection', function(socket) {
-		socket.on('register', function() {
-			socket.emit('registered');
+	socket.on('connection', function(connection) {
+		connection.on('data', function(message) {
+			if (message === 'register') {
+				connection.write('registered');
+			}
 		});
 	});
+
+	// bind the SockJS instance to the HTTP server
+	socket.installHandlers(httpServer, {prefix: '/Listener'});
 
 	this.start = function(callback) {
 		self.once('started', callback);

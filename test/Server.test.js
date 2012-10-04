@@ -3,7 +3,7 @@
 var should = require('chai').should(),
 	Server = require('../src/Server'),
 	request = require('superagent')
-	io = require('socket.io-client');
+	sockJSClient = require('sockjs-client');
 
 var TEST_PORT = 8080;
 
@@ -49,36 +49,31 @@ describe('Server', function() {
 		});
 	});
 
-	describe('Socket.IO', function() {
+	describe('SockJS', function() {
 		var socket;
 
 		before(function(done) {
 			server.start(function() {
-				// NB. Cannot use name spaced sockets as they cannot
-				// be disconnected cleanly and will prevent the http
-				// server closing
-				socket = io.connect('http://localhost:' + TEST_PORT);
-				socket.on('connect', function() {
+				socket = sockJSClient.create('http://localhost:' + TEST_PORT + '/Listener');
+				socket.on('connection', function() {
 					done();
 				});
 			});
 		});
 
 		it('should respond to register events', function(done) {
-			socket.on('registered', function() {
+			socket.on('data', function(message) {
+				message.should.equal('registered');
 				done();
 			});
-			socket.emit('register');
+			socket.write('register');
 		});
 
 		after(function(done) {
-			socket.on('disconnect', function() {
-				// NB. workaround for issue in socket.io-client that
-				// prevents new sockets being opened
-				delete io.sockets['http://localhost:' + TEST_PORT];
+			socket.on('close', function() {
 				server.stop(done);
 			});
-			socket.disconnect();
+			socket.close();
 		});
 	});
 });
