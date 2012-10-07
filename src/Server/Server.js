@@ -3,20 +3,34 @@ var events = require('events'),
     http = require('http'),
     fs = require('fs'),
     sockJS = require('sockjs'),
+    express = require('express'),
     RunnerConnection = require('./RunnerConnection'),
     ListenerConnection = require('./ListenerConnection');
 
-function Server(port, socketIoLogLevel) {
+function Server(port, connectionTimeout) {
   var self = this,
-    listenerConnections = [];
+    listenerConnections = [],
+    runnerConnections = [],
+    connections = [];
 
-  // create the HTTP server
-  var httpServer = http.createServer(function(request, response) {
-    response.writeHead(200, {
-      'Content-Type': 'text/html'
-    });
-    fs.createReadStream('./src/Listener/Listener.html').pipe(response);
+  // create the express application
+  var expressApp = express();
+
+  // register the Listener directory for static content and redirect "/" to index.html
+  expressApp.use(express.static('./src/Listener'));
+  expressApp.get('/', function(req, res){
+    res.redirect('/index.html');
   });
+  
+  // create the HTTP server
+  var httpServer = http.createServer(expressApp);
+
+  // if the connection timeout value is set then override the default
+  if (connectionTimeout) {
+    httpServer.on('connection', function(connection) {
+      connection.setTimeout(connectionTimeout);
+    });
+  }
 
   // Create a SockJS instance for the Listener interface
   var listenerSocket = sockJS.createServer({
@@ -31,6 +45,14 @@ function Server(port, socketIoLogLevel) {
     connection.pipe(listenerConnection);
     listenerConnection.pipe(connection);
     listenerConnections.push(listenerConnection);
+    connections.push(connection);
+    connection.on('close', function() {
+      var index = listenerConnections.indexOf(listenerConnection);
+      listenerConnections.splice(index, 1);
+      index = connections.indexOf(connection);
+      connections.splice(index, 1);
+    });
+    self.emit('listener');
   });
 
   // Create a SockJS instance for the Runner interface
@@ -45,6 +67,15 @@ function Server(port, socketIoLogLevel) {
     var runnerConnection = new RunnerConnection(listenerConnections);
     connection.pipe(runnerConnection);
     runnerConnection.pipe(connection);
+    runnerConnections.push(runnerConnection);
+    connections.push(connection);
+    connection.on('close', function() {
+      var index = runnerConnections.indexOf(runnerConnection);
+      runnerConnections.splice(index, 1);
+      index = connections.indexOf(connection);
+      connections.splice(index, 1);
+    });
+    self.emit('runner');
   });
 
   // bind the SockJS instances to the HTTP server
@@ -65,6 +96,10 @@ function Server(port, socketIoLogLevel) {
 
   self.stop = function(callback) {
     self.once('stopped', callback);
+    // close the SockJS connections
+    connections.forEach(function(connection) {
+      connection.close();
+    });
     httpServer.close(function() {
       self.emit('stopped');
     });
