@@ -15,7 +15,7 @@ function Server(port, socketIoLogLevel) {
     response.writeHead(200, {
       'Content-Type': 'text/html'
     });
-    fs.createReadStream('./src/Listener.html').pipe(response);
+    fs.createReadStream('./src/Listener/Listener.html').pipe(response);
   });
 
   // Create a SockJS instance for the Listener interface

@@ -1,7 +1,7 @@
 /*global describe it before*/
 
 var expect = require('chai').expect;
-var Runner = require('../src/Runner');
+var Runner = require('../src/Runner/Runner');
 
 describe('Runner', function() {
   var runner;

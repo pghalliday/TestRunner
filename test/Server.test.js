@@ -1,7 +1,7 @@
 /*global describe it before after beforeEach afterEach*/
 
 var expect = require('chai').expect,
-    Server = require('../src/Server'),
+    Server = require('../src/Server/Server'),
     request = require('superagent'),
     sockJSClient = require('sockjs-client');
 
@@ -35,7 +35,7 @@ describe('Server', function() {
       server.start(done);
     });
 
-    it('should return the TestListener.html page in response to GET requests for "/" on the port supplied at construction', function(done) {
+    it('should return the Listener.html page in response to GET requests for "/" on the port supplied at construction', function(done) {
       request.get('http://localhost:' + TEST_PORT + '/', function(response) {
         expect(response.status).to.equal(200);
         expect(response.type).to.equal('text/html');
