@@ -2,10 +2,10 @@ backlog:
 --------
 
 As a user I want to be able to send client tests to a browser using node so that I can run all my tests from one place
+	*server should emit an event when a listener connects
+	listener should connect to server on load
 	listener should run tests using mocha
-	listener should connect to server
 	runner should send tests to server
-	server should wait for listener to connect and then send tests
 	listener should run tests sent from server
 	listener should report success or failure back to server
 	server should report success or failure back to the runner

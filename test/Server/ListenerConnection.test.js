@@ -1,7 +1,7 @@
 /*global describe it beforeEach*/
 
 var expect = require('chai').expect;
-var ListenerConnection = require('../src/Server/ListenerConnection');
+var ListenerConnection = require('../../src/Server/ListenerConnection');
 
 describe('ListenerConnection', function() {
   var listenerConnection;

@@ -1,7 +1,7 @@
 /*global describe it before after beforeEach afterEach*/
 
 var expect = require('chai').expect,
-    Server = require('../src/Server/Server'),
+    Server = require('../../src/Server/Server'),
     request = require('superagent'),
     sockJSClient = require('sockjs-client');
 

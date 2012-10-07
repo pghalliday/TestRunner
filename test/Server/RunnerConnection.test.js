@@ -1,8 +1,8 @@
 /*global describe it*/
 
 var expect = require('chai').expect;
-var RunnerConnection = require('../src/Server/RunnerConnection');
-var ListenerConnection = require('../src/Server/ListenerConnection');
+var RunnerConnection = require('../../src/Server/RunnerConnection');
+var ListenerConnection = require('../../src/Server/ListenerConnection');
 
 describe('RunnerConnection', function() {
   it('should forward tests to listener connections and emit complete only after all listeners have notified that the tests are complete', function(done) {
