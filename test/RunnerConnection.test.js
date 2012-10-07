@@ -1,11 +1,11 @@
-/*global describe it beforeEach*/
+/*global describe it*/
 
 var expect = require('chai').expect;
 var RunnerConnection = require('../src/RunnerConnection');
 var ListenerConnection = require('../src/ListenerConnection');
 
 describe('RunnerConnection', function() {
-  it('should forward tests events to listener connections and emit complete only after all listeners have been notified that the tests are complete', function(done) {
+  it('should forward tests to listener connections and emit complete only after all listeners have notified that the tests are complete', function(done) {
     var runCount = 0,
       listenerConnection1 = new ListenerConnection(),
       listenerConnection2 = new ListenerConnection(),
