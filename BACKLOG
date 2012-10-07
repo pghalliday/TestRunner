@@ -1,0 +1,34 @@
+backlog:
+--------
+
+As a user I want to be able to send client tests to a browser using node so that I can run all my tests from one place
+	listener should run tests using mocha
+	listener should connect to server
+	runner should send tests to server
+	server should wait for listener to connect and then send tests
+	listener should run tests sent from server
+	listener should report success or failure back to server
+	server should report success or failure back to the runner
+
+As a user I want to be able to ensure that tests are run on all supported browsers so that i know very early when one of them breaks
+	runner should specify what listeners (browsers) tests need to be run on
+	server should wait for all required listeners to complete before signalling the runner
+	
+As a user I want to be able to test RequireJS (AMD) modules so that I can modularise my client side code and load it on demand
+	listener should support RequireJS and loading modules at runtime
+	
+As a user I want to be able to rerun my tests and bring the server up and down without having to reconnect browsers so that I can run my tests over and over again quickly
+	listener should reconnect after disconnection
+	
+As a user I want to see the progress of tests being run in my command prompt so that I have a sense that things are happening
+	listener should report back test progress
+	
+As a user I want to be able to use frameworks other than mocha for testing so that I do not have to switch away from the tools i am comfortable with
+	listener should support multiple test frameworks
+
+
+todo:
+-----
+
+handle/queue concurrent test runs?
+flow control?
