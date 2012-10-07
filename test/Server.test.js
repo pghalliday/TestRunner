@@ -1,79 +1,117 @@
-/*global describe:false it:false*/
+/*global describe it before after beforeEach afterEach*/
 
-var should = require('chai').should(),
-	Server = require('../src/Server'),
-	request = require('superagent')
-	sockJSClient = require('sockjs-client');
+var expect = require('chai').expect,
+    Server = require('../src/Server'),
+    request = require('superagent'),
+    sockJSClient = require('sockjs-client');
 
 var TEST_PORT = 8080;
 
 describe('Server', function() {
-	var server;
+  var server;
 
-	before(function() {
-		server = new Server(TEST_PORT);
-	});
+  before(function() {
+    server = new Server(TEST_PORT);
+  });
 
-	it('should callback and emit events when started and stopped', function(done) {
-		var startedEventsReceived = 0;
-		var stoppedEventsReceived = 0;
-		server.start(function() {
-			server.stop(function() {
-				startedEventsReceived.should.equal(1, 'Should get 1 and only 1 started event');
-				stoppedEventsReceived.should.equal(1, 'Should get 1 and only 1 stopped event');
-				done();
-			});
-		}).on('started', function() {
-			startedEventsReceived++;
-		}).on('stopped', function() {
-			stoppedEventsReceived++;
-		});
-	});
+  it('should callback and emit events when started and stopped', function(done) {
+    var startedEventsReceived = 0,
+      stoppedEventsReceived = 0;
+    server.start(function() {
+      server.stop(function() {
+        expect(startedEventsReceived).to.equal(1, 'Should get 1 and only 1 started event');
+        expect(stoppedEventsReceived).to.equal(1, 'Should get 1 and only 1 stopped event');
+        done();
+      });
+    }).on('started', function() {
+      startedEventsReceived++;
+    }).on('stopped', function() {
+      stoppedEventsReceived++;
+    });
+  });
 
-	describe('HTTP', function() {
-		before(function(done) {
-			server.start(done);
-		});
+  describe('HTTP', function() {
+    before(function(done) {
+      server.start(done);
+    });
 
-		it('should return the TestListener.html page in response to GET requests for "/" on the port supplied at construction', function(done) {
-			request.get('http://localhost:' + TEST_PORT + '/', function(response) {
-				response.status.should.equal(200);
-				response.type.should.equal('text/html');
-				response.text.should.match(/<!-- Listener marker -->/g);
-				done();
-			});
-		});
+    it('should return the TestListener.html page in response to GET requests for "/" on the port supplied at construction', function(done) {
+      request.get('http://localhost:' + TEST_PORT + '/', function(response) {
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.match(/<!-- Listener marker -->/g);
+        done();
+      });
+    });
 
-		after(function(done) {
-			server.stop(done);
-		});
-	});
+    after(function(done) {
+      server.stop(done);
+    });
+  });
 
-	describe('SockJS', function() {
-		var socket;
+  describe('SockJS', function() {
+    var listenerSocket1,
+      listenerSocket2,
+      listenerSocket3,
+      runnerSocket;
 
-		before(function(done) {
-			server.start(function() {
-				socket = sockJSClient.create('http://localhost:' + TEST_PORT + '/Listener');
-				socket.on('connection', function() {
-					done();
-				});
-			});
-		});
+    beforeEach(function(done) {
+      server.start(function() {
+        listenerSocket1 = sockJSClient.create('http://localhost:' + TEST_PORT + '/Listener');
+        listenerSocket1.on('connection', function() {
+          listenerSocket2 = sockJSClient.create('http://localhost:' + TEST_PORT + '/Listener');
+          listenerSocket2.on('connection', function() {
+            listenerSocket3 = sockJSClient.create('http://localhost:' + TEST_PORT + '/Listener');
+            listenerSocket3.on('connection', function() {
+              runnerSocket = sockJSClient.create('http://localhost:' + TEST_PORT + '/Runner');
+              runnerSocket.on('connection', function() {
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
 
-		it('should respond to register events', function(done) {
-			socket.on('data', function(message) {
-				message.should.equal('registered');
-				done();
-			});
-			socket.write('register');
-		});
+    it('should forward tests sent to runner socket to the listener sockets', function(done) {
+      var runCount = 0;
+      listenerSocket1.on('data', function(data) {
+        runCount++;
+        expect(data).to.equal('tests');
+        listenerSocket1.write('complete');
+      });
+      listenerSocket2.on('data', function(data) {
+        runCount++;
+        expect(data).to.equal('tests');
+        listenerSocket2.write('complete');
+      });
+      listenerSocket3.on('data', function(data) {
+        runCount++;
+        expect(data).to.equal('tests');
+        listenerSocket3.write('complete');
+      });
+      runnerSocket.on('data', function(data) {
+        expect(data).to.equal('complete');
+        expect(runCount).to.equal(3);
+        done();
+      });
+      runnerSocket.write('tests');
+    });
 
-		after(function(done) {
-			socket.on('close', function() {
-				server.stop(done);
-			});
-			socket.close();
-		});
-	});
+    afterEach(function(done) {
+      runnerSocket.on('close', function() {
+        listenerSocket1.on('close', function() {
+          listenerSocket2.on('close', function() {
+            listenerSocket3.on('close', function() {
+              server.stop(done);
+            });
+            listenerSocket3.close();
+          });
+          listenerSocket2.close();
+        });
+        listenerSocket1.close();
+      });
+      runnerSocket.close();
+    });
+  });
 });

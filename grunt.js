@@ -7,7 +7,7 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     lint: {
-      files: ['grunt.js', 'src/**/*.js']
+      files: ['grunt.js', 'src/**/*.js', 'test/**/*.js']
     },
     jshint: {
       options: {
@@ -36,7 +36,7 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['grunt.js', 'src/**/*.js', 'test/**/*.js'],
+        files: ['<config.lint:files>'],
         tasks: 'default'
       }
     }
