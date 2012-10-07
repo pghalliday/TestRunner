@@ -2,7 +2,6 @@ backlog:
 --------
 
 As a user I want to be able to send client tests to a browser using node so that I can run all my tests from one place
-	listener should reconnect after disconnection
 	listener should run tests using mocha
 	runner should send tests to server
 	listener should run tests sent from server
