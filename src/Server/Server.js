@@ -7,11 +7,12 @@ var events = require('events'),
     RunnerConnection = require('./RunnerConnection'),
     ListenerConnection = require('./ListenerConnection');
 
-function Server(port, connectionTimeout) {
+function Server(port) {
   var self = this,
     listenerConnections = [],
     runnerConnections = [],
-    connections = [];
+    connections = [],
+    httpConnections = [];
 
   // create the express application
   var expressApp = express();
@@ -26,11 +27,13 @@ function Server(port, connectionTimeout) {
   var httpServer = http.createServer(expressApp);
 
   // if the connection timeout value is set then override the default
-  if (connectionTimeout) {
-    httpServer.on('connection', function(connection) {
-      connection.setTimeout(connectionTimeout);
+  httpServer.on('connection', function(connection) {
+    httpConnections.push(connection);
+    connection.on('close', function() {
+      var index = httpConnections.indexOf(connection);
+      httpConnections.splice(index, 1);
     });
-  }
+  });
 
   // Create a SockJS instance for the Listener interface
   var listenerSocket = sockJS.createServer({
@@ -99,6 +102,11 @@ function Server(port, connectionTimeout) {
     // close the SockJS connections
     connections.forEach(function(connection) {
       connection.close();
+    });
+    // close the HTTP connections
+    httpConnections.forEach(function(connection) {
+      // TODO: is destroy really a safe thing to do here? Probably given the use cases :s
+      connection.destroy();
     });
     httpServer.close(function() {
       self.emit('stopped');

@@ -1,12 +1,14 @@
 /*global SockJS console*/
 
-var sock = new SockJS('/Listener');
-sock.onopen = function() {
+(function openSocket() {
+  var socket = new SockJS('/Listener');
+  socket.onopen = function() {
     console.log('open');
-};
-sock.onmessage = function(e) {
-    console.log('message', e.data);
-};
-sock.onclose = function() {
-    console.log('close');
-};
+  };
+  socket.onclose = function() {
+    console.log('close: reconnecting in 100 milliseconds');
+    setTimeout(function() {
+      openSocket();
+    }, 100);
+  };    
+}());
